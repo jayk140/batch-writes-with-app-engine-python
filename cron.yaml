@@ -1,0 +1,4 @@
+cron:
+- description: View count batch processing
+  url: /viewcount
+  schedule: every 10 minutes
