@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Batch writes in Google App Engine (Python) </title>
+    <link type="text/css" rel="stylesheet" href="/static/main.css">
+  </head>
+  <body>
+    <h2> Submit a new blog post here: </h2>
+    <form action="/" method="post">
+      <p> Title: <input id="title" type="text" name="title"> </p>
+      <p> Subject: <textarea id="subject" name="subject"> </textarea> </p>
+      <input type="submit" value="Submit">
+    </form>
+
+    <h1> Blog Posts: </h1>
+    {% for blog in blog_posts %}
+    <a href="{{ '/%s' % blog.key.id()}}">
+      <p> {{blog.title}} </p>
+    </a>
+    {% endfor %}
+
+  </body>
+</html>
