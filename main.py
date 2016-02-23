@@ -4,7 +4,7 @@ import jinja2
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-# Initial jinja/templating set-up
+# Jinja/templating set-up
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -19,7 +19,6 @@ class MainHandler(webapp2.RequestHandler):
         self.response.out.write(*a, **kw)
 
     def render_str(self, template, **params):
-        # params['user'] = self.user
         return render_str(template, **params)
         
     def render(self, template, **kw):
@@ -52,21 +51,30 @@ class PostPage(MainHandler):
     q.add(taskqueue.Task(payload=post_id, method='PULL'))
     self.render("permalink.html", postdict=postdict)
 
+# Cron job worker maps to below handler and leases 1000 tasks from "views" task queue for 60 seconds
+
 class ViewCount(webapp2.RequestHandler):
   def get(self):
     q = taskqueue.Queue('views')
     while True:
-      tasks = q.lease_tasks(60, 1000)
-      if not tasks:
-        return
-      tallies = {}
-      for t in tasks:
-        tallies[t.payload] = tallies.get(t.payload, 0) + 1
-      objects = ndb.get_multi([ndb.Key(BlogPost, int(k)) for k in tallies])
-      for object in objects:
-        object.views += tallies[str(object.key.id())]
-      ndb.put_multi(objects)
-      q.delete_tasks(tasks)
+      try:
+        tasks = q.lease_tasks(60, 1000)
+        if not tasks:
+          return
+        tallies = {}
+        for t in tasks:
+          tallies[t.payload] = tallies.get(t.payload, 0) + 1
+        objects = ndb.get_multi([ndb.Key(BlogPost, int(k)) for k in tallies])
+        for object in objects:
+          object.views += tallies[str(object.key.id())]
+        ndb.put_multi(objects)
+        q.delete_tasks(tasks)
+
+      except google.appengine.api.taskqueue.TransientError:
+        print("google.appengine.api.taskqueue.TransientError")
+
+      except google.appengine.runtime.apiproxy_errors.DeadlineExceededError:
+        print("google.appengine.runtime.apiproxy_errors.DeadlineExceededError")
 
 
 app = webapp2.WSGIApplication([('/', FrontPage),

@@ -1,1 +1,3 @@
-Simple application demonstrating how to execute batch write processing in Google App Engine Python using up-to-date APIs (NDB, Taskqueues). Writes are the most expensive operation in App Engine. For applications with frequently updated entities, for the purpose of keeping a page view count for example, batch wirtes can greatly reduce overall cost. 
+Simple application demonstrating how to execute batch write processing in Google App Engine (Python) using up-to-date APIs (NDB, Taskqueues). Writes are the most expensive operation in App Engine. For applications with frequently updated entities, for the purpose of keeping a page view count for example, batch writes can greatly reduce overall cost. 
+
+* Please note that the cron job does not run automatically when testing locally. You can simulate the cron job by using CURL or similar tool to hit handler that processes task queues. curl http://localhost:8080/viewcount -v
